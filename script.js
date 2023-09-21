@@ -2,6 +2,7 @@ const fs = require('fs')
 const jsdom = require("jsdom")
 
 const ExcelJS = require('exceljs');
+const { _center, _header } = require('./styles');
 
 const today = new Date().toLocaleDateString('en-GB').split('/').join('-')
 const files = [ 'oxidos', 'pigmentos-puros', 'esmaltes-ceramicos']
@@ -15,16 +16,22 @@ for (const file of files) {
 
   sheet.columns = [
     { header: 'Producto', key: 'name', width: 50 },
-    { header: 'Precio', key: 'price', width: 20 },
-    { header: 'Stock', key: 'stock', width: 20 },
+    { header: 'Precio', key: 'price', width: 20, style: { alignment: _center,  numFmt: '"$"#,##0.00;[Red]\-"$"#,##0.00' } },
+    { header: 'Stock', key: 'stock', width: 20, style: { alignment: _center }  },
   ];
+
+  const header = sheet.getRow(1)
+  header.font = _header.font
+  header.alignment = _header.alignment
+  header.fill = _header.fill
+  header.height = 20
 
   for (const product of fileProducts) {
     const isAvailable = !product.offers.availability?.includes('OutOfStock')
 
     sheet.addRow({
       name: product.name,
-      price: isAvailable ? product.offers.price : '-',
+      price: isAvailable ? Number(product.offers.price) : 0,
       stock: isAvailable ? 'Sí' : 'No'
     });
   }
