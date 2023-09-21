@@ -1,0 +1,15 @@
+{
+  "name": "providers",
+  "version": "1.0.0",
+  "description": "",
+  "main": "script.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Irungaray",
+  "license": "LGPL-3.0-only",
+  "dependencies": {
+    "exceljs": "^4.3.0",
+    "jsdom": "^22.1.0"
+  }
+}
