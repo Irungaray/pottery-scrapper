@@ -1,7 +1,7 @@
 ## pottery-scrapper
 ### Usage:
 
-    nvm instal
+    nvm install
     nvm use
 
     npm i
