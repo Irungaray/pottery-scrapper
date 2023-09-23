@@ -16,7 +16,9 @@ for (const file of files) {
 
   sheet.columns = [
     { header: 'Producto', key: 'name', width: 50 },
+    { header: 'kg.', key: 'quantity', width: 15, style: { alignment: _center } },
     { header: 'Precio', key: 'price', width: 20, style: { alignment: _center,  numFmt: '"$"#,##0.00;[Red]\-"$"#,##0.00' } },
+    { header: 'Precio por kilo', key: 'priceByKg', width: 20, style: { alignment: _center,  numFmt: '"$"#,##0.00;[Red]\-"$"#,##0.00' } },
     { header: 'Stock', key: 'stock', width: 20, style: { alignment: _center }  },
   ];
 
@@ -28,10 +30,13 @@ for (const file of files) {
 
   for (const product of fileProducts) {
     const isAvailable = !product.offers.availability?.includes('OutOfStock')
+    const pricePerGraim = product.offers.price / product.weight.value
 
     sheet.addRow({
       name: product.name,
-      price: isAvailable ? Number(product.offers.price) : 0,
+      quantity: Number(product.weight.value),
+      price: Number(product.offers?.price),
+      priceByKg: pricePerGraim * 1,
       stock: isAvailable ? 'Sí' : 'No'
     });
   }
