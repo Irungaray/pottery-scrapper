@@ -2,6 +2,8 @@
 
 TODAY=$(date +%d-%m-%Y)
 
+[ -e  "./xlsx/$TODAY.xlsx" ] && xdg-open ./xlsx/$TODAY.xlsx && exit 0
+
 [ ! -e  "./html" ] && mkdir ./html
 [ ! -e  "./html/$TODAY" ] && mkdir ./html/$TODAY
 [ ! -e  "./json" ] && mkdir ./json
