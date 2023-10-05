@@ -1,80 +1,66 @@
-const fs = require('fs')
-const jsdom = require("jsdom")
+const puppeteer = require('puppeteer')
 
 const ExcelJS = require('exceljs');
 const { _centered, _price, _header } = require('./styles');
 
-const today = new Date().toLocaleDateString('en-GB').split('/').join('-')
-const files = ['oxidos', 'pigmentos-puros', 'esmaltes-ceramicos']
+const categories = ['oxidos', 'pigmentos-puros', 'esmaltes-ceramicos']
 
-const workbook = new ExcelJS.Workbook();
+makeXLSX()
 
-for (const file of files) {
-  const fileProducts = getProductsFromFile(file)
+async function makeXLSX() {
+  const workbook = new ExcelJS.Workbook();
 
-  const sheet = workbook.addWorksheet(file);
+  for (const category of categories) {
+    const products = await getProductsFromCategory(category)
 
-  sheet.columns = [
-    { header: 'Producto', key: 'name', width: 50 },
-    { header: 'Stock', key: 'stock', width: 20, style: _centered  },
-    { header: 'kg.', key: 'quantity', width: 15, style: _centered },
-    { header: 'Precio', key: 'price', width: 20, style: _price },
-    { header: 'Precio por kilo', key: 'pricePerKg', width: 20, style: _price },
-    { header: '', key: 'divider', width: 15 },
-    { header: 'U. de Venta (kg)', key: 'sellUnitKg', width: 23, style: _centered },
-    { header: 'Ganancia (%)', key: 'feePercent', width: 20, style: _centered },
-    { header: 'Ganancia ($)', key: 'feeNominal', width: 20, style: _price },
-    { header: 'Precio final', key: 'finalPrice', width: 20, style: _price },
-  ];
+    console.log(`${products.length} ${category}`)
 
-  const header = sheet.getRow(1)
-  header.font = _header.font
-  header.alignment = _header.alignment
-  header.fill = _header.fill
-  header.height = 20
+    const sheet = workbook.addWorksheet(category);
 
-  for (const product of fileProducts) {
-    const isAvailable = !product.offers.availability?.includes('OutOfStock')
-    const pricePerGraim = product.offers.price / product.weight.value
-    const sellUnitKg = getProductSellUnit(product, file)
+    sheet.columns = [
+      { header: 'Producto', key: 'name', width: 50 },
+      { header: 'Stock', key: 'stock', width: 20, style: _centered  },
+      { header: 'kg.', key: 'quantity', width: 15, style: _centered },
+      { header: 'Precio', key: 'price', width: 20, style: _price },
+      { header: 'Precio por kilo', key: 'pricePerKg', width: 20, style: _price },
+      { header: '', key: 'divider', width: 15 },
+      { header: 'U. de Venta (kg)', key: 'sellUnitKg', width: 23, style: _centered },
+      { header: 'Ganancia (%)', key: 'feePercent', width: 20, style: _centered },
+      { header: 'Ganancia ($)', key: 'feeNominal', width: 20, style: _price },
+      { header: 'Precio final', key: 'finalPrice', width: 20, style: _price },
+    ];
 
-    sheet.addRow({
-      name: product.name,
-      stock: isAvailable ? 'Sí' : 'No',
-      quantity: Number(product.weight.value),
-      price: Number(product.offers?.price),
-      pricePerKg: pricePerGraim * 1,
-      sellUnitKg,
-      feePercent: 100,
-      feeNominal: (pricePerGraim * sellUnitKg) * 1,
-      finalPrice: (pricePerGraim * sellUnitKg) * 2,
-    });
-  }
-}
+    const header = sheet.getRow(1)
+    header.font = _header.font
+    header.alignment = _header.alignment
+    header.fill = _header.fill
+    header.height = 20
 
-workbook.xlsx.writeFile(`./xlsx/${today}.xlsx`)
+    for (const product of products) {
+      const isAvailable = !product.offers.availability?.includes('OutOfStock')
+      const pricePerGraim = product.offers.price / product.weight.value
+      const sellUnitKg = calcProductSellUnit(product, category)
 
-function getProductsFromFile(file) {
-  const html = fs.readFileSync(`./html/${today}/${file}.html`, { encoding: 'utf-8' })
-  const dom = new jsdom.JSDOM(html);
-  const elements = dom.window.document.querySelectorAll('script[type="application/ld+json"]')
-
-  const products = []
-
-  for (const element of elements) {
-    const literal = JSON.parse(element.innerHTML);
-
-    if (literal['@type'] === 'Product') {
-      products.push(literal)
+      sheet.addRow({
+        name: product.name,
+        stock: isAvailable ? 'Sí' : 'No',
+        quantity: Number(product.weight.value),
+        price: Number(product.offers?.price),
+        pricePerKg: pricePerGraim * 1,
+        sellUnitKg,
+        feePercent: 100,
+        feeNominal: (pricePerGraim * sellUnitKg) * 1,
+        finalPrice: (pricePerGraim * sellUnitKg) * 2,
+      });
     }
   }
 
-  fs.writeFileSync(`./json/${today}/${file}.json`, JSON.stringify(products, null, 4))
+  const today = new Date().toLocaleDateString('en-GB').split('/').join('-')
 
-  return products
+  workbook.xlsx.writeFile(`./xlsx/${today}-${Math.random()}.xlsx`)
 }
 
-function getProductSellUnit(product, type) {
+function calcProductSellUnit(product, type) {
   if (type === 'oxidos') {
     const sellsByFiftyGraims = ['Oxido Hierro Amarillo', 'Oxido Hierro Rojo', 'Oxido de Manganeso'].includes(product.name)
 
@@ -86,4 +72,63 @@ function getProductSellUnit(product, type) {
   if (type === 'pigmentos-puros') return .010
 
   if (type === 'esmaltes-ceramicos') return .250
+}
+
+async function getProductsFromCategory(category) {
+  const PROVIDER_URL = 'https://dpcolors.com/productos1'
+  const TWO_MINUTES = 2 * 60 * 1000
+
+  let browser
+
+  try {
+    browser = await puppeteer.launch({ headless: 'new' })
+
+    const page = await browser.newPage()
+
+    await page.setViewport({ width: 1920, height: 1080 })
+
+    page.setDefaultNavigationTimeout(TWO_MINUTES)
+
+    await page.goto(`${PROVIDER_URL}/${category}`)
+
+    const products = []
+
+    let elementHandles = []
+
+    let shouldKeepScrolling = true;
+
+    while (shouldKeepScrolling) {
+      await page.evaluate((y) => { document.scrollingElement.scrollBy(0, y); }, 5000);
+
+      await page.waitForTimeout(3000)
+
+      const loadMoreButton = await page.$('.js-load-more')
+      const isLoadMoreButtonHidden = await loadMoreButton.isHidden()
+
+      if (!isLoadMoreButtonHidden) {
+        await loadMoreButton.click('.js-load-more')
+      }
+
+      const elementHandlesOnScroll = await page.$$('script[type="application/ld+json"]')
+
+      if (elementHandles.length === elementHandlesOnScroll.length) shouldKeepScrolling = false;
+
+      elementHandles = elementHandlesOnScroll
+    }
+
+    for (const handle of elementHandles) {
+      const elementJSON = await handle.evaluate(el => el.innerHTML)
+      const literal = JSON.parse(elementJSON)
+
+      if (literal['@type'] === 'Product') {
+        products.push(literal)
+      }
+    }
+
+    return products
+  } catch (error) {
+    console.log(error)
+  } finally {
+    await browser?.close()
+  }
 }

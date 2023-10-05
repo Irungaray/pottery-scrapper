@@ -10,6 +10,6 @@
   "license": "LGPL-3.0-only",
   "dependencies": {
     "exceljs": "^4.3.0",
-    "jsdom": "^22.1.0"
+    "puppeteer": "^21.3.7"
   }
 }
