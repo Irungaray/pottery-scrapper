@@ -8,7 +8,7 @@ const { _centered, _price, _header } = require('./styles');
 
 const bot = new TelegramBot(process.env.BOT_TOKEN, { polling: true });
 
-bot.on('message', async (msg) => {
+bot.onText(/\/tetragramaton/, async (msg) => {
   const chatId = msg.chat.id;
 
   await bot.sendMessage(chatId, 'Consiguiendo los productos...')
@@ -16,8 +16,22 @@ bot.on('message', async (msg) => {
   try {
     await sendFile(chatId)
   } catch (error) {
-    await bot.sendMessage(chatId, 'Hubo un error, comunicate con tu amorcito para que lo arregle <3')
+    await bot.sendMessage(chatId, 'Hubo un error, comunicate con tu amorcito para que lo arregle ❤')
   }
+});
+
+bot.onText(/\/amorcito/, function onLoveText(msg) {
+  const opts = {
+    reply_to_message_id: msg.message_id,
+    reply_markup: JSON.stringify({
+      keyboard: [
+        ['Sí amorcito ❤'],
+        ['Mucho mucho ❤']
+      ]
+    })
+  };
+
+  bot.sendMessage(msg.chat.id, 'Me querés mucho?', opts);
 });
 
 async function sendFile(chatId) {
@@ -29,7 +43,7 @@ async function sendFile(chatId) {
 
   await bot.sendMessage(chatId, `Completado con: ${summaryString}.`)
   await bot.sendDocument(chatId, buffer, {}, options);
-  await bot.sendMessage(chatId, `Gracias por usar el bot amorcito, te amo <3`)
+  await bot.sendMessage(chatId, `Gracias por usar el bot amorcito, te amo ❤`)
 }
 
 async function getXlsxBuffer() {
