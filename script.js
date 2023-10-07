@@ -1,14 +1,30 @@
 const puppeteer = require('puppeteer')
-
 const ExcelJS = require('exceljs');
+const TelegramBot = require('node-telegram-bot-api');
+
+require('dotenv').config()
+
 const { _centered, _price, _header } = require('./styles');
 
-const categories = ['oxidos', 'pigmentos-puros', 'esmaltes-ceramicos']
+const bot = new TelegramBot(process.env.BOT_TOKEN, { polling: true });
 
-makeXLSX()
+bot.on('message', async (msg) => {
+  const chatId = msg.chat.id;
+  await sendFile(chatId)
+});
 
-async function makeXLSX() {
+async function sendFile(chatId) {
+  const buffer = await getXlsxBuffer()
+  const today = new Date().toLocaleDateString('en-GB').split('/').join('-')
+  const options = { filename: `${today}.xlsx`, contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }
+
+  await bot.sendDocument(chatId, buffer, {}, options);
+}
+
+async function getXlsxBuffer() {
   const workbook = new ExcelJS.Workbook();
+
+  const categories = process.env.CATEGORIES.split(',')
 
   for (const category of categories) {
     const products = await getProductsFromCategory(category)
@@ -55,9 +71,9 @@ async function makeXLSX() {
     }
   }
 
-  const today = new Date().toLocaleDateString('en-GB').split('/').join('-')
+  const buffer = await workbook.xlsx.writeBuffer()
 
-  workbook.xlsx.writeFile(`./xlsx/${today}-${Math.random()}.xlsx`)
+  return buffer;
 }
 
 function calcProductSellUnit(product, type) {
@@ -75,7 +91,6 @@ function calcProductSellUnit(product, type) {
 }
 
 async function getProductsFromCategory(category) {
-  const PROVIDER_URL = 'https://dpcolors.com/productos1'
   const TWO_MINUTES = 2 * 60 * 1000
 
   let browser
@@ -89,7 +104,7 @@ async function getProductsFromCategory(category) {
 
     page.setDefaultNavigationTimeout(TWO_MINUTES)
 
-    await page.goto(`${PROVIDER_URL}/${category}`)
+    await page.goto(`${process.env.PROVIDER_URL}/${category}`)
 
     const products = []
 

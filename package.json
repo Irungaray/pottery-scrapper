@@ -9,7 +9,9 @@
   "author": "Irungaray",
   "license": "LGPL-3.0-only",
   "dependencies": {
+    "dotenv": "^16.3.1",
     "exceljs": "^4.3.0",
+    "node-telegram-bot-api": "^0.63.0",
     "puppeteer": "^21.3.7"
   }
 }
