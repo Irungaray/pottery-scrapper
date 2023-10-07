@@ -96,7 +96,7 @@ async function getProductsFromCategory(category) {
   let browser
 
   try {
-    browser = await puppeteer.launch({ headless: 'new' })
+    browser = await puppeteer.launch({ headless: 'new', args: ['--no-sandbox'] })
 
     const page = await browser.newPage()
 
