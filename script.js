@@ -1,22 +1,24 @@
 const puppeteer = require('puppeteer')
-const ExcelJS = require('exceljs');
-const TelegramBot = require('node-telegram-bot-api');
-const cron = require('node-cron');
+const ExcelJS = require('exceljs')
+const TelegramBot = require('node-telegram-bot-api')
+const cron = require('node-cron')
 
 require('dotenv').config()
 
-const { _centered, _price, _header } = require('./styles');
+const { _centered, _price, _header } = require('./styles')
 
-const bot = new TelegramBot(process.env.BOT_TOKEN, { polling: true });
+const bot = new TelegramBot(process.env.BOT_TOKEN, { polling: true })
 
 bot.on('message', async (msg) => {
-  const chatId = msg.chat.id;
+  const chatId = msg.chat.id
+
+  if (msg.text.startsWith('/')) return
 
   await bot.sendMessage(chatId, 'Hola amorcito, usá alguno de los comandos ❤')
-});
+})
 
 bot.onText(/\/tetragramaton/, async (msg) => {
-  const chatId = msg.chat.id;
+  const chatId = msg.chat.id
 
   await bot.sendMessage(chatId, 'Consiguiendo los productos...')
 
@@ -25,7 +27,7 @@ bot.onText(/\/tetragramaton/, async (msg) => {
   } catch (error) {
     await bot.sendMessage(chatId, 'Hubo un error, comunicate con tu amorcito para que lo arregle ❤')
   }
-});
+})
 
 bot.onText(/\/amorcito/, function onLoveText(msg) {
   const opts = {
@@ -36,10 +38,10 @@ bot.onText(/\/amorcito/, function onLoveText(msg) {
         ['Mucho mucho ❤']
       ]
     })
-  };
+  }
 
-  bot.sendMessage(msg.chat.id, 'Me querés mucho?', opts);
-});
+  bot.sendMessage(msg.chat.id, 'Me querés mucho?', opts)
+})
 
 cron.schedule('0 6 * * 1-5', async () => {
   await bot.sendMessage(process.env.CHAT_ID, 'Hola amorcito ❤')
@@ -51,7 +53,7 @@ cron.schedule('0 6 * * 1-5', async () => {
   } catch (error) {
     await bot.sendMessage(process.env.CHAT_ID, 'Hubo un error, comunicate con tu amorcito para que lo arregle ❤')
   }
-});
+})
 
 async function sendFile(chatId) {
   const { buffer, summary } = await getXlsxBuffer()
@@ -61,12 +63,12 @@ async function sendFile(chatId) {
   const summaryString = summary.join(', ')
 
   await bot.sendMessage(chatId, `Completado con: ${summaryString}.`)
-  await bot.sendDocument(chatId, buffer, {}, options);
+  await bot.sendDocument(chatId, buffer, {}, options)
   await bot.sendMessage(chatId, `Gracias por usar el bot amorcito, te amo ❤`)
 }
 
 async function getXlsxBuffer() {
-  const workbook = new ExcelJS.Workbook();
+  const workbook = new ExcelJS.Workbook()
 
   const categories = process.env.CATEGORIES.split(',')
 
@@ -81,7 +83,7 @@ async function getXlsxBuffer() {
     console.log(`Retrieved ${categorySummary}`)
     summary.push(categorySummary)
 
-    const sheet = workbook.addWorksheet(category);
+    const sheet = workbook.addWorksheet(category)
 
     sheet.columns = [
       { header: 'Producto', key: 'name', width: 50 },
@@ -94,7 +96,7 @@ async function getXlsxBuffer() {
       { header: 'Ganancia (%)', key: 'feePercent', width: 20, style: _centered },
       { header: 'Ganancia ($)', key: 'feeNominal', width: 20, style: _price },
       { header: 'Precio final', key: 'finalPrice', width: 20, style: _price },
-    ];
+    ]
 
     const header = sheet.getRow(1)
     header.font = _header.font
@@ -117,13 +119,13 @@ async function getXlsxBuffer() {
         feePercent: 100,
         feeNominal: (pricePerGraim * sellUnitKg) * 1,
         finalPrice: (pricePerGraim * sellUnitKg) * 2,
-      });
+      })
     }
   }
 
   const buffer = await workbook.xlsx.writeBuffer()
 
-  return { buffer, summary };
+  return { buffer, summary }
 }
 
 function calcProductSellUnit(product, type) {
@@ -160,10 +162,10 @@ async function getProductsFromCategory(category) {
 
     let elementHandles = []
 
-    let shouldKeepScrolling = true;
+    let shouldKeepScrolling = true
 
     while (shouldKeepScrolling) {
-      await page.evaluate((y) => { document.scrollingElement.scrollBy(0, y); }, 5000);
+      await page.evaluate((y) => { document.scrollingElement.scrollBy(0, y) }, 5000)
 
       await page.waitForTimeout(3000)
 
@@ -176,7 +178,7 @@ async function getProductsFromCategory(category) {
 
       const elementHandlesOnScroll = await page.$$('script[type="application/ld+json"]')
 
-      if (elementHandles.length === elementHandlesOnScroll.length) shouldKeepScrolling = false;
+      if (elementHandles.length === elementHandlesOnScroll.length) shouldKeepScrolling = false
 
       elementHandles = elementHandlesOnScroll
     }
