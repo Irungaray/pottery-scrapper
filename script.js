@@ -25,6 +25,7 @@ async function getXlsxBuffer() {
   const workbook = new ExcelJS.Workbook();
 
   const categories = process.env.CATEGORIES.split(',')
+  console.log(categories)
 
   for (const category of categories) {
     const products = await getProductsFromCategory(category)
@@ -131,10 +132,9 @@ async function getProductsFromCategory(category) {
       elementHandles = elementHandlesOnScroll
     }
 
-    console.log(elementHandles)
-
     for (const handle of elementHandles) {
       const elementJSON = await handle.evaluate(el => el.innerHTML)
+      console.log(elementJSON)
       const literal = JSON.parse(elementJSON)
 
       if (literal['@type'] === 'Product') {
