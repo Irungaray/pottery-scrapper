@@ -27,7 +27,7 @@ async function sendFile(chatId) {
 
   const summaryString = summary.join(', ')
 
-  await bot.sendMessage(chatId, `Completado con: ${summaryString}`)
+  await bot.sendMessage(chatId, `Completado con: ${summaryString}. \nGracias por usar el bot amorcito, te amo <3`)
   await bot.sendDocument(chatId, buffer, {}, options);
 }
 
