@@ -1,6 +1,7 @@
 const puppeteer = require('puppeteer')
 const ExcelJS = require('exceljs');
 const TelegramBot = require('node-telegram-bot-api');
+const cron = require('node-cron');
 
 require('dotenv').config()
 
@@ -38,6 +39,18 @@ bot.onText(/\/amorcito/, function onLoveText(msg) {
   };
 
   bot.sendMessage(msg.chat.id, 'Me querés mucho?', opts);
+});
+
+cron.schedule('0 6 * * 1-5', async () => {
+  await bot.sendMessage(process.env.CHAT_ID, 'Hola amorcito ❤')
+  await bot.sendMessage(process.env.CHAT_ID, 'Te voy a mandar la nueva lista de precios...')
+
+  try {
+    await sendFile(process.env.CHAT_ID)
+    await bot.sendMessage(process.env.CHAT_ID, 'Que tengas un lindo día en el trabajo amorcito ❤')
+  } catch (error) {
+    await bot.sendMessage(process.env.CHAT_ID, 'Hubo un error, comunicate con tu amorcito para que lo arregle ❤')
+  }
 });
 
 async function sendFile(chatId) {
