@@ -10,14 +10,24 @@ const bot = new TelegramBot(process.env.BOT_TOKEN, { polling: true });
 
 bot.on('message', async (msg) => {
   const chatId = msg.chat.id;
-  await sendFile(chatId)
+
+  await bot.sendMessage(chatId, 'Consiguiendo los productos...')
+
+  try {
+    await sendFile(chatId)
+  } catch (error) {
+    await bot.sendMessage(chatId, 'Hubo un error, comunicate con tu amorcito para que lo arregle <3')
+  }
 });
 
 async function sendFile(chatId) {
-  const buffer = await getXlsxBuffer()
+  const { buffer, summary } = await getXlsxBuffer()
   const today = new Date().toLocaleDateString('en-GB').split('/').join('-')
   const options = { filename: `${today}.xlsx`, contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }
 
+  const summaryString = summary.join(', ')
+
+  await bot.sendMessage(chatId, `Completado con: ${summaryString}`)
   await bot.sendDocument(chatId, buffer, {}, options);
 }
 
@@ -25,12 +35,17 @@ async function getXlsxBuffer() {
   const workbook = new ExcelJS.Workbook();
 
   const categories = process.env.CATEGORIES.split(',')
-  console.log(categories)
+
+  const summary = []
+
+  console.log('Generating XLSX')
 
   for (const category of categories) {
     const products = await getProductsFromCategory(category)
 
-    console.log(`${products.length} ${category}`)
+    const categorySummary = `${products.length} ${category}`
+    console.log(`Retrieved ${categorySummary}`)
+    summary.push(categorySummary)
 
     const sheet = workbook.addWorksheet(category);
 
@@ -74,7 +89,7 @@ async function getXlsxBuffer() {
 
   const buffer = await workbook.xlsx.writeBuffer()
 
-  return buffer;
+  return { buffer, summary };
 }
 
 function calcProductSellUnit(product, type) {
@@ -134,7 +149,6 @@ async function getProductsFromCategory(category) {
 
     for (const handle of elementHandles) {
       const elementJSON = await handle.evaluate(el => el.innerHTML)
-      console.log(elementJSON)
       const literal = JSON.parse(elementJSON)
 
       if (literal['@type'] === 'Product') {
