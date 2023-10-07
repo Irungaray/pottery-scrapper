@@ -8,6 +8,12 @@ const { _centered, _price, _header } = require('./styles');
 
 const bot = new TelegramBot(process.env.BOT_TOKEN, { polling: true });
 
+bot.on('message', async (msg) => {
+  const chatId = msg.chat.id;
+
+  await bot.sendMessage(chatId, 'Hola amorcito, usá alguno de los comandos ❤')
+});
+
 bot.onText(/\/tetragramaton/, async (msg) => {
   const chatId = msg.chat.id;
 
