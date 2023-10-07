@@ -118,9 +118,9 @@ async function getProductsFromCategory(category) {
       await page.waitForTimeout(3000)
 
       const loadMoreButton = await page.$('.js-load-more')
-      const isLoadMoreButtonHidden = await loadMoreButton.isHidden()
+      const isLoadMoreButtonHidden = await loadMoreButton?.isHidden()
 
-      if (!isLoadMoreButtonHidden) {
+      if (loadMoreButton && !isLoadMoreButtonHidden) {
         await loadMoreButton.click('.js-load-more')
       }
 
@@ -130,6 +130,8 @@ async function getProductsFromCategory(category) {
 
       elementHandles = elementHandlesOnScroll
     }
+
+    console.log(elementHandles)
 
     for (const handle of elementHandles) {
       const elementJSON = await handle.evaluate(el => el.innerHTML)
