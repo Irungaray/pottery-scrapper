@@ -26,6 +26,7 @@ bot.onText(/\/tetragramaton/, async (msg) => {
     await sendFile(chatId)
   } catch (error) {
     await bot.sendMessage(chatId, 'Hubo un error, comunicate con tu amorcito para que lo arregle ❤')
+    console.log(error)
   }
 })
 
@@ -43,7 +44,8 @@ bot.onText(/\/amorcito/, function onLoveText(msg) {
   bot.sendMessage(msg.chat.id, 'Me querés mucho?', opts)
 })
 
-cron.schedule('0 6 * * 1-5', async () => {
+cron.schedule('0 12 * * 1-5', async () => {
+  console.log('Running cron...')
   await bot.sendMessage(process.env.CHAT_ID, 'Hola amorcito ❤')
   await bot.sendMessage(process.env.CHAT_ID, 'Te voy a mandar la nueva lista de precios...')
 
@@ -52,6 +54,8 @@ cron.schedule('0 6 * * 1-5', async () => {
     await bot.sendMessage(process.env.CHAT_ID, 'Que tengas un lindo día en el trabajo amorcito ❤')
   } catch (error) {
     await bot.sendMessage(process.env.CHAT_ID, 'Hubo un error, comunicate con tu amorcito para que lo arregle ❤')
+    console.log('Error running cron:')
+    console.error(error)
   }
 })
 
