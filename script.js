@@ -87,7 +87,7 @@ async function getXlsxBuffer() {
     console.log(`Retrieved ${categorySummary}`)
     summary.push(categorySummary)
 
-    const sheet = workbook.addWorksheet(category)
+    const sheet = workbook.addWorksheet(category, { views: [{ state: 'frozen', ySplit: 1 }] })
 
     sheet.columns = [
       { header: 'Producto', key: 'name', width: 50 },
