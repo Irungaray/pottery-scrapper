@@ -12,6 +12,8 @@ const authorizedChatIds = [process.env.CHAT_ID, process.env.ADMIN_CHAT_ID]
 const bot = new TelegramBot(process.env.BOT_TOKEN, { polling: true })
 
 bot.on('message', async (msg) => {
+  if (msg.text.startsWith('/')) return
+
   const chatId = String(msg.chat.id)
   const isAuthorized = authorizedChatIds.includes(chatId)
 
@@ -21,8 +23,6 @@ bot.on('message', async (msg) => {
     await bot.sendMessage(chatId, 'Acceso no autorizado.')
     return
   }
-
-  if (msg.text.startsWith('/')) return
 
   await bot.sendMessage(chatId, 'Hola amorcito, usá alguno de los comandos ❤')
 })
