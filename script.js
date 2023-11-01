@@ -118,9 +118,7 @@ async function getXlsxBuffer() {
     console.log(`Retrieved ${categorySummary}`)
     summary.push(categorySummary)
 
-    const sheet = workbook.addWorksheet(category, { views: [{ state: 'frozen', ySplit: 1 }] })
-
-    sheet.columns = [
+    const columns = [
       { header: 'Stock', key: 'stock', width: 10, style: _centered  },
       { header: 'Producto', key: 'name', width: 50 },
       { header: 'U. de Venta (kg)', key: 'sellUnitKg', width: 23, style: _centered },
@@ -132,11 +130,26 @@ async function getXlsxBuffer() {
       { header: 'Precio por kilo', key: 'pricePerKg', width: 20, style: _price },
     ]
 
-    const header = sheet.getRow(1)
-    header.font = _header.font
-    header.alignment = _header.alignment
-    header.fill = _header.fill
-    header.height = 20
+    const sheet = workbook.addWorksheet(category, { views: [{ state: 'frozen', ySplit: 2 }] })
+
+    sheet.mergeCells('C1:E1');
+    sheet.getCell('C1').value = 'VENTA';
+
+    sheet.mergeCells('G1:I1');
+    sheet.getCell('G1').value = 'COMPRA';
+
+    sheet.getRow(2).values = columns.map((col) => col.header)
+
+    sheet.columns = columns.map((col) => ({ key: col.key, width: col.width, style: col.style  }))
+
+    const headers = sheet.getRows(1, 2)
+
+    for (const row of headers) {
+      row.font = _header.font
+      row.alignment = _header.alignment
+      row.fill = _header.fill
+      row.height = 20
+    }
 
     for (const product of products) {
       const isAvailable = !product.offers.availability?.includes('OutOfStock')
