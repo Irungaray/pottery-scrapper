@@ -121,16 +121,15 @@ async function getXlsxBuffer() {
     const sheet = workbook.addWorksheet(category, { views: [{ state: 'frozen', ySplit: 1 }] })
 
     sheet.columns = [
+      { header: 'Stock', key: 'stock', width: 10, style: _centered  },
       { header: 'Producto', key: 'name', width: 50 },
-      { header: 'Stock', key: 'stock', width: 20, style: _centered  },
+      { header: 'U. de Venta (kg)', key: 'sellUnitKg', width: 23, style: _centered },
+      { header: 'Ganancia ($)', key: 'feeNominal', width: 20, style: _price },
+      { header: 'Precio final', key: 'finalPrice', width: 20, style: _price },
+      { header: '', key: 'divider', width: 35 },
       { header: 'kg.', key: 'quantity', width: 15, style: _centered },
       { header: 'Precio', key: 'price', width: 20, style: _price },
       { header: 'Precio por kilo', key: 'pricePerKg', width: 20, style: _price },
-      { header: '', key: 'divider', width: 15 },
-      { header: 'U. de Venta (kg)', key: 'sellUnitKg', width: 23, style: _centered },
-      { header: 'Ganancia (%)', key: 'feePercent', width: 20, style: _centered },
-      { header: 'Ganancia ($)', key: 'feeNominal', width: 20, style: _price },
-      { header: 'Precio final', key: 'finalPrice', width: 20, style: _price },
     ]
 
     const header = sheet.getRow(1)
@@ -145,15 +144,14 @@ async function getXlsxBuffer() {
       const sellUnitKg = calcProductSellUnit(product, category)
 
       sheet.addRow({
+        stock: isAvailable ? '✓' : '✕',
         name: product.name,
-        stock: isAvailable ? 'Sí' : 'No',
+        sellUnitKg,
+        feeNominal: (pricePerGraim * sellUnitKg) * 1,
+        finalPrice: (pricePerGraim * sellUnitKg) * 2,
         quantity: Number(product.weight.value),
         price: Number(product.offers?.price),
         pricePerKg: pricePerGraim * 1,
-        sellUnitKg,
-        feePercent: 100,
-        feeNominal: (pricePerGraim * sellUnitKg) * 1,
-        finalPrice: (pricePerGraim * sellUnitKg) * 2,
       })
     }
   }
