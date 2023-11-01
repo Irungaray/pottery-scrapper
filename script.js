@@ -7,10 +7,20 @@ require('dotenv').config()
 
 const { _centered, _price, _header } = require('./styles')
 
+const authorizedChatIds = [process.env.CHAT_ID, process.env.ADMIN_CHAT_ID]
+
 const bot = new TelegramBot(process.env.BOT_TOKEN, { polling: true })
 
 bot.on('message', async (msg) => {
-  const chatId = msg.chat.id
+  const chatId = String(msg.chat.id)
+  const isAuthorized = authorizedChatIds.includes(chatId)
+
+  console.log(`Received ${isAuthorized ? 'authorized' : 'unauthorized'} message from ${chatId}: ${msg.text}`)
+
+  if (!isAuthorized) {
+    await bot.sendMessage(chatId, 'Acceso no autorizado.')
+    return
+  }
 
   if (msg.text.startsWith('/')) return
 
@@ -18,7 +28,15 @@ bot.on('message', async (msg) => {
 })
 
 bot.onText(/\/tetragramaton/, async (msg) => {
-  const chatId = msg.chat.id
+  const chatId = String(msg.chat.id)
+  const isAuthorized = authorizedChatIds.includes(chatId)
+
+  console.log(`Received ${isAuthorized ? 'authorized' : 'unauthorized'} message from ${chatId}: ${msg.text}`)
+
+  if (!isAuthorized) {
+    await bot.sendMessage(chatId, 'Acceso no autorizado.')
+    return
+  }
 
   await bot.sendMessage(chatId, 'Consiguiendo los productos...')
 
@@ -30,7 +48,17 @@ bot.onText(/\/tetragramaton/, async (msg) => {
   }
 })
 
-bot.onText(/\/amorcito/, function onLoveText(msg) {
+bot.onText(/\/amorcito/, async function onLoveText(msg) {
+  const chatId = String(msg.chat.id)
+  const isAuthorized = authorizedChatIds.includes(chatId)
+
+  console.log(`Received ${isAuthorized ? 'authorized' : 'unauthorized'} message from ${chatId}: ${msg.text}`)
+
+  if (!isAuthorized) {
+    await bot.sendMessage(chatId, 'Acceso no autorizado.')
+    return
+  }
+
   const opts = {
     reply_to_message_id: msg.message_id,
     reply_markup: JSON.stringify({
@@ -48,13 +76,15 @@ cron.schedule('0 12 * * 1-5', async () => {
   console.log('Running cron...')
   await bot.sendMessage(process.env.CHAT_ID, 'Hola amorcito ❤')
   await bot.sendMessage(process.env.CHAT_ID, 'Te voy a mandar la nueva lista de precios...')
+  await bot.sendMessage(process.env.ADMIN_CHAT_ID, `Running CRON.`)
 
   try {
     await sendFile(process.env.CHAT_ID)
     await bot.sendMessage(process.env.CHAT_ID, 'Que tengas un lindo día en el trabajo amorcito ❤')
   } catch (error) {
     await bot.sendMessage(process.env.CHAT_ID, 'Hubo un error, comunicate con tu amorcito para que lo arregle ❤')
-    console.log('Error running cron:')
+    await bot.sendMessage(process.env.ADMIN_CHAT_ID, `Error running CRON.`)
+    console.log('Error running CRON:')
     console.error(error)
   }
 })
@@ -69,6 +99,7 @@ async function sendFile(chatId) {
   await bot.sendMessage(chatId, `Completado con: ${summaryString}.`)
   await bot.sendDocument(chatId, buffer, {}, options)
   await bot.sendMessage(chatId, `Gracias por usar el bot amorcito, te amo ❤`)
+  await bot.sendMessage(process.env.ADMIN_CHAT_ID, `Delivered XLSX file with ${summaryString} to ${chatId}.`)
 }
 
 async function getXlsxBuffer() {
@@ -78,7 +109,7 @@ async function getXlsxBuffer() {
 
   const summary = []
 
-  console.log('Generating XLSX')
+  console.log('Generating XLSX...')
 
   for (const category of categories) {
     const products = await getProductsFromCategory(category)
