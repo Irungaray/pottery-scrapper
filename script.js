@@ -125,7 +125,7 @@ async function getXlsxBuffer() {
       { header: 'Ganancia ($)', key: 'feeNominal', width: 20, style: _price },
       { header: 'Precio final', key: 'finalPrice', width: 20, style: _price },
       { header: '', key: 'divider', width: 35 },
-      { header: 'kg.', key: 'quantity', width: 15, style: _centered },
+      { header: 'U. de Compra (kg).', key: 'buyUnitKg', width: 25, style: _centered },
       { header: 'Precio', key: 'price', width: 20, style: _price },
       { header: 'Precio por kilo', key: 'pricePerKg', width: 20, style: _price },
     ]
@@ -162,7 +162,7 @@ async function getXlsxBuffer() {
         sellUnitKg,
         feeNominal: (pricePerGraim * sellUnitKg) * 1,
         finalPrice: (pricePerGraim * sellUnitKg) * 2,
-        quantity: Number(product.weight.value),
+        buyUnitKg: Number(product.weight.value),
         price: Number(product.offers?.price),
         pricePerKg: pricePerGraim * 1,
       })
