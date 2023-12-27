@@ -5,9 +5,11 @@ const cron = require('node-cron')
 
 require('dotenv').config()
 
-const { _centered, _price, _header } = require('./styles')
+const healtcheck = require('./healtcheck');
+const { _centered, _price, _header } = require('./styles');
 
 const authorizedChatIds = [process.env.CHAT_ID, process.env.ADMIN_CHAT_ID]
+const PORT = process.env.PORT || 3000;
 
 const bot = new TelegramBot(process.env.BOT_TOKEN, { polling: true })
 
@@ -245,3 +247,7 @@ async function getProductsFromCategory(category) {
     await browser?.close()
   }
 }
+
+healtcheck.listen(PORT, () => {
+  console.log(`Healtcheck listening on port ${PORT}`);
+});
