@@ -14,7 +14,7 @@ const PORT = process.env.PORT || 3000;
 const bot = new TelegramBot(process.env.BOT_TOKEN, { polling: true })
 
 bot.on('message', async (msg) => {
-  if (msg?.text?.startsWith('/')) return
+  if (!msg || !msx.text || msg.text.startsWith('/')) return
 
   const chatId = String(msg.chat.id)
   const isAuthorized = authorizedChatIds.includes(chatId)
